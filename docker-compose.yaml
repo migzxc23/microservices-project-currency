@@ -1,0 +1,56 @@
+version: '3.7'
+
+services:
+  currency-exchange:
+    image: migzxc23/ms-currency-exchange-service:0.0.1-SNAPSHOT
+    ports:
+      -  "8000:8000"
+    networks:
+      -  currency-network
+    depends_on:
+      -  naming-server
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin-server:9411/api/v2/spans
+
+  currency-conversion:
+    image: migzxc23/ms-currency-conversion-service:0.0.1-SNAPSHOT
+    ports:
+      - "8100:8100"
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin-server:9411/api/v2/spans
+
+  apigateway:
+    image: migzxc23/ms-apigateway:0.0.1-SNAPSHOT
+    ports:
+      - "8765:8765"
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin-server:9411/api/v2/spans
+
+  naming-server:
+    image: migzxc23/ms-naming-server:0.0.1-SNAPSHOT
+    ports:
+      - "8761:8761"
+    networks:
+      - currency-network
+
+  zipkin-server:
+    image: openzipkin/zipkin:2.23
+    ports:
+      - "9411:9411"
+    networks:
+      - currency-network
+    restart: always
+
+networks:
+  currency-network:
